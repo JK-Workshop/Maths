@@ -1,6 +1,6 @@
 # Maths
 
-This is the maths library developed by **JK Workshop**. Functionalities are ranged but not limited from calculas, linear algebra and geometry, more are on development. All computation methods are in track of being updated and optimized based on most cutting-edged research outcomes.
+This is the maths library developed and used by **JK Workshop**. Functionalities are ranged but not limited from calculas, linear algebra and geometry, more are on development. All computation methods are in track of being updated and optimized based on most cutting-edged research outcomes.
 
 ## Download the release
 
