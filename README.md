@@ -6,7 +6,7 @@ This is the maths library developed by **JK Workshop**. Functionalities are rang
 
 ## Build it on your machine
 
-Open the terminal and type the following command
+Open the terminal and type the following command. If you are lazy, you can just copy and paste it.
 
 ```batch
 git clone https://github.com/JK-Workshop/Maths
