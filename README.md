@@ -8,6 +8,5 @@ This is the maths library developed by **JK Workshop**. Functionalities are rang
 
 Open the terminal and type the following command
 
-'''batch
-git clone https://github.com/JK-Workshop/Maths
-'''
+`git clone https://github.com/JK-Workshop/Maths`
+
