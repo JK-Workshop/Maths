@@ -179,8 +179,8 @@
     <None Include="src\CudaComp.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Matrix.h" />
     <ClInclude Include="include\Vector.h" />
+    <ClInclude Include="include\Vector\VecInt32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,7 +22,7 @@
     <ClInclude Include="include\Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Matrix.h">
+    <ClInclude Include="include\Vector\VecInt32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

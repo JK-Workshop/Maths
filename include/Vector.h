@@ -4,23 +4,29 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <vector>
+
+#include <emmintrin.h>
 #include <immintrin.h>
 
 namespace jk::math {
-	template<class T, size_t R,
-		T(*ADD)(const T& self, const T& other), T(*NEG)(const T& self),
-		T(*MUL)(const T& self, const T& other), T(*INV)(const T& self)>
-	class Vector {
+
+	consteval size_t LEAST_POWER_OF_TWO_ABOVE(size_t N) {
+		size_t mostSignificantBit = 0;
+		while (N >>= 1)  mostSignificantBit++;
+		return mostSignificantBit + 1;
+	}
+
+	template<class T, size_t R> class Vector {
 	private:
 		T* entry;
+
+		auto add, neg, mul, inv;
+		
 		std::vector<void*> operantChain;
 		std::vector<uint8_t> operatorChain;
 	public:
-		Vector(const T& x, const T& y, const T& z)
-			: entry(new T[R]) {
-			this->entry[0] = x;
-			this->entry[1] = y;
-			this->entry[2] = z;
+		Vector(auto add, auto neg, auto mul, auto inv)
+			: entry(new T[R]), add(add), neg(neg), mul(mul), inv(inv) {
 		}
 
 		~Vector() {
@@ -30,23 +36,23 @@ namespace jk::math {
 		constexpr size_t Size() const { return R; }
 
 		Vector operator+(const Vector& other) const {
-			Vector<T, R, ADD, NEG, MUL, INV> tmpVec(0.0, 0.0, 0.0);
+			Vector<T, R> tmpVec(add, neg, mul, inv);
 			for (size_t i = 0; i < Size(); i++)
-				tmpVec.entry[i] = ADD(this->entry[i], other.entry[i]);
+				tmpVec.entry[i] = add(this->entry[i], other.entry[i]);
 			return tmpVec;
 		}
 
 		Vector operator-(const Vector& other) const {
-			Vector<T, R, ADD, NEG, MUL, INV> tmpVec(0.0, 0.0, 0.0);
+			Vector<T, R> tmpVec(add, neg, mul, inv);
 			for (size_t i = 0; i < Size(); i++)
-				tmpVec.entry[i] = ADD(this->entry[i], NEG(other.entry[i]));
+				tmpVec.entry[i] = add(this->entry[i], neg(other.entry[i]));
 			return tmpVec;
 		}
 
 		T Dot(const Vector& other) {
-			T tmpScalar = MUL(this->entry[0], other.entry[0]);
+			T tmpScalar = mul(this->entry[0], other.entry[0]);
 			for (size_t i = 1; i < Size(); i++)
-				tmpScalar = ADD(tmpScalar, MUL(this->entry[i], other.entry[i]));
+				tmpScalar = add(tmpScalar, mul(this->entry[i], other.entry[i]));
 			return tmpScalar;
 		}
 
@@ -58,135 +64,103 @@ namespace jk::math {
 		}
 	};
 
-	using Vec2f32_t = Vector <float, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3f32_t = Vector <float, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4f32_t = Vector <float, 4, nullptr, nullptr, nullptr, nullptr>;
-	using Vec5f32_t = Vector <float, 5, nullptr, nullptr, nullptr, nullptr>;
-	using Vec6f32_t = Vector <float, 6, nullptr, nullptr, nullptr, nullptr>;
-	using Vec7f32_t = Vector <float, 7, nullptr, nullptr, nullptr, nullptr>;
-	using Vec8f32_t = Vector <float, 8, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2f32_t = Vector <float, 2>;
+	using Vec3f32_t = Vector <float, 3>;
+	using Vec4f32_t = Vector <float, 4>;
+	using Vec5f32_t = Vector <float, 5>;
+	using Vec6f32_t = Vector <float, 6>;
+	using Vec7f32_t = Vector <float, 7>;
+	using Vec8f32_t = Vector <float, 8>;
 
-	using Vec2f64_t = Vector <double, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3f64_t = Vector <double, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4f64_t = Vector <double, 4, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2f64_t = Vector <double, 2>;
+	using Vec3f64_t = Vector <double, 3>;
+	using Vec4f64_t = Vector <double, 4>;
 
-	using Vec2i8_t  = Vector <int8_t, 2,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec3i8_t  = Vector <int8_t, 3,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec4i8_t  = Vector <int8_t, 4,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec5i8_t  = Vector <int8_t, 5,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec6i8_t  = Vector <int8_t, 6,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec7i8_t  = Vector <int8_t, 7,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec8i8_t  = Vector <int8_t, 8,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec9i8_t  = Vector <int8_t, 9,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec10i8_t = Vector <int8_t, 10, nullptr, nullptr, nullptr, nullptr>;
-	using Vec11i8_t = Vector <int8_t, 11, nullptr, nullptr, nullptr, nullptr>;
-	using Vec12i8_t = Vector <int8_t, 12, nullptr, nullptr, nullptr, nullptr>;
-	using Vec13i8_t = Vector <int8_t, 13, nullptr, nullptr, nullptr, nullptr>;
-	using Vec14i8_t = Vector <int8_t, 14, nullptr, nullptr, nullptr, nullptr>;
-	using Vec15i8_t = Vector <int8_t, 15, nullptr, nullptr, nullptr, nullptr>;
-	using Vec16i8_t = Vector <int8_t, 16, nullptr, nullptr, nullptr, nullptr>;
-	using Vec17i8_t = Vector <int8_t, 17, nullptr, nullptr, nullptr, nullptr>;
-	using Vec18i8_t = Vector <int8_t, 18, nullptr, nullptr, nullptr, nullptr>;
-	using Vec19i8_t = Vector <int8_t, 19, nullptr, nullptr, nullptr, nullptr>;
-	using Vec20i8_t = Vector <int8_t, 20, nullptr, nullptr, nullptr, nullptr>;
-	using Vec21i8_t = Vector <int8_t, 21, nullptr, nullptr, nullptr, nullptr>;
-	using Vec22i8_t = Vector <int8_t, 22, nullptr, nullptr, nullptr, nullptr>;
-	using Vec23i8_t = Vector <int8_t, 23, nullptr, nullptr, nullptr, nullptr>;
-	using Vec24i8_t = Vector <int8_t, 24, nullptr, nullptr, nullptr, nullptr>;
-	using Vec25i8_t = Vector <int8_t, 25, nullptr, nullptr, nullptr, nullptr>;
-	using Vec26i8_t = Vector <int8_t, 26, nullptr, nullptr, nullptr, nullptr>;
-	using Vec27i8_t = Vector <int8_t, 27, nullptr, nullptr, nullptr, nullptr>;
-	using Vec28i8_t = Vector <int8_t, 28, nullptr, nullptr, nullptr, nullptr>;
-	using Vec29i8_t = Vector <int8_t, 29, nullptr, nullptr, nullptr, nullptr>;
-	using Vec30i8_t = Vector <int8_t, 30, nullptr, nullptr, nullptr, nullptr>;
-	using Vec31i8_t = Vector <int8_t, 31, nullptr, nullptr, nullptr, nullptr>;
-	using Vec32i8_t = Vector <int8_t, 32, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2i16_t  = Vector <int16_t,  2>;
+	using Vec3i16_t  = Vector <int16_t,  3>;
+	using Vec4i16_t  = Vector <int16_t,  4>;
+	using Vec5i16_t  = Vector <int16_t,  5>;
+	using Vec6i16_t  = Vector <int16_t,  6>;
+	using Vec7i16_t  = Vector <int16_t,  7>;
+	using Vec8i16_t  = Vector <int16_t,  8>;
+	using Vec9i16_t  = Vector <int16_t,  9>;
+	using Vec10i16_t = Vector <int16_t, 10>;
+	using Vec11i16_t = Vector <int16_t, 11>;
+	using Vec12i16_t = Vector <int16_t, 12>;
+	using Vec13i16_t = Vector <int16_t, 13>;
+	using Vec14i16_t = Vector <int16_t, 14>;
+	using Vec15i16_t = Vector <int16_t, 15>;
+	using Vec16i16_t = Vector <int16_t, 16>;
 
-	using Vec2i16_t  = Vector <int16_t, 2,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec3i16_t  = Vector <int16_t, 3,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec4i16_t  = Vector <int16_t, 4,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec5i16_t  = Vector <int16_t, 5,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec6i16_t  = Vector <int16_t, 6,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec7i16_t  = Vector <int16_t, 7,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec8i16_t  = Vector <int16_t, 8,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec9i16_t  = Vector <int16_t, 9,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec10i16_t = Vector <int16_t, 10, nullptr, nullptr, nullptr, nullptr>;
-	using Vec11i16_t = Vector <int16_t, 11, nullptr, nullptr, nullptr, nullptr>;
-	using Vec12i16_t = Vector <int16_t, 12, nullptr, nullptr, nullptr, nullptr>;
-	using Vec13i16_t = Vector <int16_t, 13, nullptr, nullptr, nullptr, nullptr>;
-	using Vec14i16_t = Vector <int16_t, 14, nullptr, nullptr, nullptr, nullptr>;
-	using Vec15i16_t = Vector <int16_t, 15, nullptr, nullptr, nullptr, nullptr>;
-	using Vec16i16_t = Vector <int16_t, 16, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2i32_t = Vector <int32_t, 2>;
+	using Vec3i32_t = Vector <int32_t, 3>;
+	using Vec4i32_t = Vector <int32_t, 4>;
+	using Vec5i32_t = Vector <int32_t, 5>;
+	using Vec6i32_t = Vector <int32_t, 6>;
+	using Vec7i32_t = Vector <int32_t, 7>;
+	using Vec8i32_t = Vector <int32_t, 8>;
 
-	using Vec2i32_t = Vector <int32_t, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3i32_t = Vector <int32_t, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4i32_t = Vector <int32_t, 4, nullptr, nullptr, nullptr, nullptr>;
-	using Vec5i32_t = Vector <int32_t, 5, nullptr, nullptr, nullptr, nullptr>;
-	using Vec6i32_t = Vector <int32_t, 6, nullptr, nullptr, nullptr, nullptr>;
-	using Vec7i32_t = Vector <int32_t, 7, nullptr, nullptr, nullptr, nullptr>;
-	using Vec8i32_t = Vector <int32_t, 8, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2i64_t = Vector <int64_t, 2>;
+	using Vec3i64_t = Vector <int64_t, 3>;
+	using Vec4i64_t = Vector <int64_t, 4>;
 
-	using Vec2i64_t = Vector <int64_t, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3i64_t = Vector <int64_t, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4i64_t = Vector <int64_t, 4, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2u8_t  = Vector <uint8_t,  2>;
+	using Vec3u8_t  = Vector <uint8_t,  3>;
+	using Vec4u8_t  = Vector <uint8_t,  4>;
+	using Vec5u8_t  = Vector <uint8_t,  5>;
+	using Vec6u8_t  = Vector <uint8_t,  6>;
+	using Vec7u8_t  = Vector <uint8_t,  7>;
+	using Vec8u8_t  = Vector <uint8_t,  8>;
+	using Vec9u8_t  = Vector <uint8_t,  9>;
+	using Vec10u8_t = Vector <uint8_t, 10>;
+	using Vec11u8_t = Vector <uint8_t, 11>;
+	using Vec12u8_t = Vector <uint8_t, 12>;
+	using Vec13u8_t = Vector <uint8_t, 13>;
+	using Vec14u8_t = Vector <uint8_t, 14>;
+	using Vec15u8_t = Vector <uint8_t, 15>;
+	using Vec16u8_t = Vector <uint8_t, 16>;
+	using Vec17u8_t = Vector <uint8_t, 17>;
+	using Vec18u8_t = Vector <uint8_t, 18>;
+	using Vec19u8_t = Vector <uint8_t, 19>;
+	using Vec20u8_t = Vector <uint8_t, 20>;
+	using Vec21u8_t = Vector <uint8_t, 21>;
+	using Vec22u8_t = Vector <uint8_t, 22>;
+	using Vec23u8_t = Vector <uint8_t, 23>;
+	using Vec24u8_t = Vector <uint8_t, 24>;
+	using Vec25u8_t = Vector <uint8_t, 25>;
+	using Vec26u8_t = Vector <uint8_t, 26>;
+	using Vec27u8_t = Vector <uint8_t, 27>;
+	using Vec28u8_t = Vector <uint8_t, 28>;
+	using Vec29u8_t = Vector <uint8_t, 29>;
+	using Vec30u8_t = Vector <uint8_t, 30>;
+	using Vec31u8_t = Vector <uint8_t, 31>;
+	using Vec32u8_t = Vector <uint8_t, 32>;
 
-	using Vec2u8_t  = Vector <uint8_t, 2,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec3u8_t  = Vector <uint8_t, 3,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec4u8_t  = Vector <uint8_t, 4,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec5u8_t  = Vector <uint8_t, 5,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec6u8_t  = Vector <uint8_t, 6,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec7u8_t  = Vector <uint8_t, 7,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec8u8_t  = Vector <uint8_t, 8,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec9u8_t  = Vector <uint8_t, 9,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec10u8_t = Vector <uint8_t, 10, nullptr, nullptr, nullptr, nullptr>;
-	using Vec11u8_t = Vector <uint8_t, 11, nullptr, nullptr, nullptr, nullptr>;
-	using Vec12u8_t = Vector <uint8_t, 12, nullptr, nullptr, nullptr, nullptr>;
-	using Vec13u8_t = Vector <uint8_t, 13, nullptr, nullptr, nullptr, nullptr>;
-	using Vec14u8_t = Vector <uint8_t, 14, nullptr, nullptr, nullptr, nullptr>;
-	using Vec15u8_t = Vector <uint8_t, 15, nullptr, nullptr, nullptr, nullptr>;
-	using Vec16u8_t = Vector <uint8_t, 16, nullptr, nullptr, nullptr, nullptr>;
-	using Vec17u8_t = Vector <uint8_t, 17, nullptr, nullptr, nullptr, nullptr>;
-	using Vec18u8_t = Vector <uint8_t, 18, nullptr, nullptr, nullptr, nullptr>;
-	using Vec19u8_t = Vector <uint8_t, 19, nullptr, nullptr, nullptr, nullptr>;
-	using Vec20u8_t = Vector <uint8_t, 20, nullptr, nullptr, nullptr, nullptr>;
-	using Vec21u8_t = Vector <uint8_t, 21, nullptr, nullptr, nullptr, nullptr>;
-	using Vec22u8_t = Vector <uint8_t, 22, nullptr, nullptr, nullptr, nullptr>;
-	using Vec23u8_t = Vector <uint8_t, 23, nullptr, nullptr, nullptr, nullptr>;
-	using Vec24u8_t = Vector <uint8_t, 24, nullptr, nullptr, nullptr, nullptr>;
-	using Vec25u8_t = Vector <uint8_t, 25, nullptr, nullptr, nullptr, nullptr>;
-	using Vec26u8_t = Vector <uint8_t, 26, nullptr, nullptr, nullptr, nullptr>;
-	using Vec27u8_t = Vector <uint8_t, 27, nullptr, nullptr, nullptr, nullptr>;
-	using Vec28u8_t = Vector <uint8_t, 28, nullptr, nullptr, nullptr, nullptr>;
-	using Vec29u8_t = Vector <uint8_t, 29, nullptr, nullptr, nullptr, nullptr>;
-	using Vec30u8_t = Vector <uint8_t, 30, nullptr, nullptr, nullptr, nullptr>;
-	using Vec31u8_t = Vector <uint8_t, 31, nullptr, nullptr, nullptr, nullptr>;
-	using Vec32u8_t = Vector <uint8_t, 32, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2u16_t  = Vector <uint16_t,  2>;
+	using Vec3u16_t  = Vector <uint16_t,  3>;
+	using Vec4u16_t  = Vector <uint16_t,  4>;
+	using Vec5u16_t  = Vector <uint16_t,  5>;
+	using Vec6u16_t  = Vector <uint16_t,  6>;
+	using Vec7u16_t  = Vector <uint16_t,  7>;
+	using Vec8u16_t  = Vector <uint16_t,  8>;
+	using Vec9u16_t  = Vector <uint16_t,  9>;
+	using Vec10u16_t = Vector <uint16_t, 10>;
+	using Vec11u16_t = Vector <uint16_t, 11>;
+	using Vec12u16_t = Vector <uint16_t, 12>;
+	using Vec13u16_t = Vector <uint16_t, 13>;
+	using Vec14u16_t = Vector <uint16_t, 14>;
+	using Vec15u16_t = Vector <uint16_t, 15>;
+	using Vec16u16_t = Vector <uint16_t, 16>;
 
-	using Vec2u16_t  = Vector <uint16_t, 2,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec3u16_t  = Vector <uint16_t, 3,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec4u16_t  = Vector <uint16_t, 4,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec5u16_t  = Vector <uint16_t, 5,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec6u16_t  = Vector <uint16_t, 6,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec7u16_t  = Vector <uint16_t, 7,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec8u16_t  = Vector <uint16_t, 8,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec9u16_t  = Vector <uint16_t, 9,  nullptr, nullptr, nullptr, nullptr>;
-	using Vec10u16_t = Vector <uint16_t, 10, nullptr, nullptr, nullptr, nullptr>;
-	using Vec11u16_t = Vector <uint16_t, 11, nullptr, nullptr, nullptr, nullptr>;
-	using Vec12u16_t = Vector <uint16_t, 12, nullptr, nullptr, nullptr, nullptr>;
-	using Vec13u16_t = Vector <uint16_t, 13, nullptr, nullptr, nullptr, nullptr>;
-	using Vec14u16_t = Vector <uint16_t, 14, nullptr, nullptr, nullptr, nullptr>;
-	using Vec15u16_t = Vector <uint16_t, 15, nullptr, nullptr, nullptr, nullptr>;
-	using Vec16u16_t = Vector <uint16_t, 16, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2u32_t = Vector <uint32_t, 2>;
+	using Vec3u32_t = Vector <uint32_t, 3>;
+	using Vec4u32_t = Vector <uint32_t, 4>;
+	using Vec5u32_t = Vector <uint32_t, 5>;
+	using Vec6u32_t = Vector <uint32_t, 6>;
+	using Vec7u32_t = Vector <uint32_t, 7>;
+	using Vec8u32_t = Vector <uint32_t, 8>;
 
-	using Vec2u32_t = Vector <uint32_t, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3u32_t = Vector <uint32_t, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4u32_t = Vector <uint32_t, 4, nullptr, nullptr, nullptr, nullptr>;
-	using Vec5u32_t = Vector <uint32_t, 5, nullptr, nullptr, nullptr, nullptr>;
-	using Vec6u32_t = Vector <uint32_t, 6, nullptr, nullptr, nullptr, nullptr>;
-	using Vec7u32_t = Vector <uint32_t, 7, nullptr, nullptr, nullptr, nullptr>;
-	using Vec8u32_t = Vector <uint32_t, 8, nullptr, nullptr, nullptr, nullptr>;
-
-	using Vec2u64_t = Vector <uint64_t, 2, nullptr, nullptr, nullptr, nullptr>;
-	using Vec3u64_t = Vector <uint64_t, 3, nullptr, nullptr, nullptr, nullptr>;
-	using Vec4u64_t = Vector <uint64_t, 4, nullptr, nullptr, nullptr, nullptr>;
+	using Vec2u64_t = Vector <uint64_t, 2>;
+	using Vec3u64_t = Vector <uint64_t, 3>;
+	using Vec4u64_t = Vector <uint64_t, 4>;
 }
